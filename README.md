@@ -1,5 +1,5 @@
 # Neural-Network
-This is a small attempt to build a NEural Network Library for easy of use in c
+This is a small attempt to build a Neural Network Library for easy of use in c
 
 This library has been developed by me , and is a crude attempt to program a neural net program in c
 
