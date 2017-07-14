@@ -1,7 +1,10 @@
 # Neural-Network
 This is a small attempt to build a Neural Network Library for easy of use in c
 
-This library has been developed by me , and is a crude attempt to program a neural net program in c
+This library has been developed by me , and is a crude attempt to program a neural net library in c
+
+It has to be noted that the library has only online learning , with a constant learning rate learning
+
 
 it can be used to make different neural net architectures, using very simple functions
 
@@ -40,4 +43,4 @@ in the end delete the neural net
  the vector files namely vector.h and vector.c are the files whose sources can be vectorized to get better performance
  but i lack GPU programming knowledge so is left up to someone to contribute untill then
  
- IF THE PROJECT was in anyway usefull to you, do let me know with a treat
+ If the PROJECT was in anyway usefull to you, do let me know with a treat
