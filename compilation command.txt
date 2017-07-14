@@ -1,0 +1,1 @@
+gcc ./src/vector.c ./src/activationfunctions.c ./src/layer.c ./src/neuralnet.c ./src/neuralnetFFBP.c logic.c -o logic.out -lm
