@@ -20,7 +20,7 @@ void init_neuralnet(neuralnet* nn,ulli layer_count,ulli* layer_size,activation_t
 		maxsize = maxsize > layer_size[i] ? maxsize : layer_size[i];
 	}
 	
-	nn->input = nn->use_layer[0].output;						nn->input_width = layer_size[0];
+	nn->input = nn->use_layer[0].activated_output;						nn->input_width = layer_size[0];
 	nn->output = nn->use_layer[ layer_count - 1 ].activated_output;		nn->output_width = layer_size[ layer_count - 1 ];
 	nn->desired_output = (double*) malloc( sizeof(double) * nn->output_width );
 	
