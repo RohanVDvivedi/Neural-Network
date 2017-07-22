@@ -45,6 +45,21 @@ void activate_layer(layer* l)
 	{
 		funct_a[l->act_type]( &(l->activated_output[i]) , &(l->output[i]) );
 	}
+	
+	// this switch statement encompasses any requirement of an activation that requires the values of other activations in the same layer
+	switch( l->act_type )
+	{
+		case SOFTMAX :
+		{
+			double sum = 0;
+			for( ulli i=0; i<l->layer_width ; i++ )
+			{
+				sum += l->activated_output[i];
+			}
+			COMPUTE_VECT_SCALER(l->activated_output,l->activated_output,'/',sum,l->layer_width);
+			break;
+		}
+	}
 }
 
 // this function finds the derivative of the activation function that it used to find the output derivative

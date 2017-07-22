@@ -12,7 +12,8 @@ void (*funct_a[])(double* y,double* x) = {
 											relu_a,
 											elu_a,
 											arctan_a,
-											adaptlog_a
+											adaptlog_a,
+											softmax_a
 											};
 void (*funct_g[])(double* dybydx,double* y,double* x) = {
 											logistic_g,
@@ -21,7 +22,8 @@ void (*funct_g[])(double* dybydx,double* y,double* x) = {
 											relu_g,
 											elu_g,
 											arctan_g,
-											adaptlog_g
+											adaptlog_g,
+											softmax_g
 											}; 
 
 
@@ -91,4 +93,14 @@ void adaptlog_a(double* y,double* x)
 void adaptlog_g(double* dybydx,double* y,double* x)
 {
 	(*dybydx) = (*x) > 0 ? 1/( 1 + (*x) ) : 1/( 1 - (*x) ) ;
+}
+
+// in soft max only part activation takes place since we need the average of values powered by e
+void softmax_a(double* y,double* x)
+{
+	(*y) = exp( (*x) );
+}
+void softmax_g(double* dybydx,double* y,double* x)
+{
+	(*dybydx) = ( 1 - (*y) ) * (*y);
 }
