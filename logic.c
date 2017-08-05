@@ -83,8 +83,8 @@ int main()
 		else
 		{
 			printf("Test : \n");
-			// just call feed forward to find the output of the program
-			feedforward(&nn);
+			// just call get solution to find the output of the program
+			getsolution(&nn);
 		}
 	
 		// print the calculated output
@@ -92,6 +92,9 @@ int main()
 		
 		sample++;
 	}
+	
+	// to store the neuralnet on you file system if you dont want your training to be lost
+	store_neuralnet(&nn);
 	
 	// delete neuralnet once it is done
 	delete_neuralnet(&nn);
