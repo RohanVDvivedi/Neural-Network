@@ -25,11 +25,13 @@ struct layer
 };
 
 void init_layer(layer* l,ulli layer_width,double weight_range,activation_type act_type);
+void min_init_layer(layer* l,ulli layer_width,activation_type act_type);
 void delete_layer(layer* l);
 void activate_layer(layer* l);
 void deactivate_layer(layer* l);
 void print_layer(layer* l);
 void set_bias_layer(layer* l);
 void update_bias_layer(layer* l);
+void minimize_layer(layer* l);
 
 #endif

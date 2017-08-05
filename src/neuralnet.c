@@ -34,7 +34,7 @@ void init_neuralnet(neuralnet* nn,ulli layer_count,ulli* layer_size,activation_t
 		for(ulli j=0;j<layer_size[i];j++)
 		{
 			nn->weight[i][j] = ( (double*) (malloc(sizeof(double)*(layer_size[i+1]))) );
-			RANDOM_VECT( nn->weight[i][j] , weight_range , -weight_range , layer_size[i+1] );
+			if(weight_range!=0){RANDOM_VECT( nn->weight[i][j] , weight_range , -weight_range , layer_size[i+1] );}
 		}
 	}
 	
@@ -64,6 +64,61 @@ void init_neuralnet(neuralnet* nn,ulli layer_count,ulli* layer_size,activation_t
 	
 	
 	nn->temp = (double*) malloc( sizeof(double) * maxsize );
+	nn->temp_size = maxsize;
+	
+	nn->temp_layer.output = NULL;nn->temp_layer.activated_output = NULL;
+	nn->temp_layer.bias = NULL;nn->temp_layer.bias_change = NULL;nn->temp_layer.output_gradient = NULL;
+	
+	nn->under_training = 1;
+}
+
+// if th neural network is to be initialized to not train , then a lot of excess memory can be discarded from the neural net and layer
+// structures
+// for this purpose use min_init_neuralnet to initiate a minimal form of structure
+void min_init_neuralnet(neuralnet* nn,ulli layer_count,ulli* layer_size,activation_type* acttyp)
+{
+	nn->layer_count = layer_count;
+	
+	ulli maxsize = 0;
+	
+	nn->use_layer = ( (layer*) (malloc( layer_count * sizeof(layer) )) );
+	for(ulli i=0;i<layer_count;i++)
+	{
+		min_init_layer( nn->use_layer + i,layer_size[i] , acttyp[i] );
+		if(maxsize < layer_size[i])
+		{
+			maxsize = layer_size[i];
+		}
+	}
+	
+	// weight
+	nn->weight = ( (double***) ( malloc(sizeof(double**)*(layer_count-1)) ) );
+	for(ulli i=0;i<layer_count-1;i++)
+	{
+		nn->weight[i] = ( (double**) (malloc(sizeof(double*)*(layer_size[i]))) );
+		for(ulli j=0;j<layer_size[i];j++)
+		{
+			nn->weight[i][j] = ( (double*) (malloc(sizeof(double)*(layer_size[i+1]))) );
+		}
+	}
+	
+	nn->weight_gradient = NULL;
+	nn->weight_change = NULL;
+	nn->desired_output = NULL;
+	
+	nn->temp = (double*) malloc( sizeof(double) * maxsize );
+	nn->temp_size = maxsize;
+	
+	nn->input_width = layer_size[0];
+	nn->input = (double*) ( malloc( sizeof(double) * (nn->input_width) ) );
+	nn->output_width = layer_size[nn->layer_count-1];
+	nn->output = (double*) ( malloc( sizeof(double) * (nn->output_width) ) );
+	
+	nn->temp_layer.output = (double*) malloc( sizeof(double) * nn->temp_size );
+	nn->temp_layer.activated_output = (double*) malloc( sizeof(double) * nn->temp_size );
+	nn->temp_layer.bias = NULL;nn->temp_layer.bias_change = NULL;nn->temp_layer.output_gradient = NULL;
+	
+	nn->under_training = 0;
 }
 
 
@@ -82,29 +137,42 @@ void delete_neuralnet(neuralnet* nn)
 	}
 	free(nn->weight);
 	
-	// weight_gradient
-	for(ulli i=0;i<nn->layer_count-1;i++)
+	// when not under training the below data does not exist
+	if( nn->under_training == 1 )
 	{
-		for(ulli j=0;j<nn->use_layer[i].layer_width;j++)
-		{
-			free(nn->weight_gradient[i][j]);
-		}
-		free(nn->weight_gradient[i]);
-	}
-	free(nn->weight_gradient);
 	
-	// weight_change
-	for(ulli i=0;i<nn->layer_count-1;i++)
+		// weight_gradient
+		if(nn->weight_gradient!=NULL){
+		for(ulli i=0;i<nn->layer_count-1;i++)
+		{
+			for(ulli j=0;j<nn->use_layer[i].layer_width;j++)
+			{
+				free(nn->weight_gradient[i][j]);
+			}
+			free(nn->weight_gradient[i]);
+		}
+		free(nn->weight_gradient);}
+	
+		// weight_change
+		if(nn->weight_change!=NULL){
+		for(ulli i=0;i<nn->layer_count-1;i++)
+		{
+			for(ulli j=0;j<nn->use_layer[i].layer_width;j++)
+			{
+				free(nn->weight_change[i][j]);
+			}
+			free(nn->weight_change[i]);
+		}
+		free(nn->weight_change);}
+	
+		if(nn->desired_output!=NULL){free(nn->desired_output);}
+	}
+	else
 	{
-		for(ulli j=0;j<nn->use_layer[i].layer_width;j++)
-		{
-			free(nn->weight_change[i][j]);
-		}
-		free(nn->weight_change[i]);
+		if(nn->input!=NULL){free(nn->input);}
+		if(nn->output!=NULL){free(nn->output);}	
+		delete_layer(&(nn->temp_layer));
 	}
-	free(nn->weight_change);
-	
-	free(nn->desired_output);
 
 	for(ulli i=0;i<nn->layer_count;i++)
 	{
@@ -126,7 +194,7 @@ void print_neuralnet(neuralnet* nn)
 	printf("input array size \t : \t %lld \n",nn->input_width);
 	printf("output array size \t : \t %lld \n\n",nn->output_width);
 	
-	printf("desired outputs are \t : ");PRINT_VECT(nn->desired_output,nn->output_width);printf("\n\n");
+	if(nn->desired_output!=NULL){printf("desired outputs are \t : ");PRINT_VECT(nn->desired_output,nn->output_width);}printf("\n\n");
 	
 	for(ulli i=0;i<nn->layer_count-1;i++)
 	{
@@ -146,6 +214,7 @@ void print_neuralnet(neuralnet* nn)
 		}
 		printf("\n");
 		
+		if( nn->weight_gradient != NULL ){
 		printf("weight_gradient between layers %lld - %lld\n",i,i+1);
 		for(ulli j=0;j<nn->use_layer[i+1].layer_width;j++)
 		{
@@ -156,8 +225,9 @@ void print_neuralnet(neuralnet* nn)
 			}
 			printf("\n");
 		}
-		printf("\n");
+		printf("\n");}
 		
+		if(nn->weight_gradient != NULL ){
 		printf("weight_change between layers %lld - %lld\n",i,i+1);
 		for(ulli j=0;j<nn->use_layer[i+1].layer_width;j++)
 		{
@@ -168,7 +238,7 @@ void print_neuralnet(neuralnet* nn)
 			}
 			printf("\n");
 		}
-		printf("\n");
+		printf("\n");}
 		
 	}
 	

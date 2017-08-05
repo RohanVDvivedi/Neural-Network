@@ -31,6 +31,7 @@ void softmax_g(double* dybydx,double* y,double* x);
 enum activation_type{LOGISTIC = 0,TANH,IDENTITY,RELU,ELU,ARCTAN,ADAPTLOG,SOFTMAX};typedef enum activation_type activation_type;
 
 extern void (*funct_a[])(double* y,double* x);
-extern void (*funct_g[])(double* dybydx,double* y,double* x); 
+extern void (*funct_g[])(double* dybydx,double* y,double* x);
+extern char funct_name[][50];
 
 #endif

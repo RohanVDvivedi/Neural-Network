@@ -24,7 +24,19 @@ void (*funct_g[])(double* dybydx,double* y,double* x) = {
 											arctan_g,
 											adaptlog_g,
 											softmax_g
-											}; 
+											};
+							
+char funct_name[][50] = {
+						"logistic",
+						"tanh",
+						"identity",
+						"relu",
+						"elu",
+						"arctan",
+						"adaptlog",
+						"softmax"
+					};
+
 
 
 void logistic_a(double* y,double* x)
