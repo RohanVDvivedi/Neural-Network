@@ -43,13 +43,15 @@ int main()
 	//		{ Identity , logistic , logistic }  // the activation being used by different layers
 	//		weight_range is this parameter is 4 the weights & biases are initialized randomly from -4 to 4 double values
 	//		learning_rate of neuron
-	init_neuralnet(&nn,3,(ulli []){2,3,1},(activation_type []){IDENTITY,LOGISTIC,LOGISTIC},5,0.8);
+	init_neuralnet(&nn,3,(ulli []){2,5,1},(activation_type []){IDENTITY,LOGISTIC,LOGISTIC},0.3,0.00001);
 	
 	// maximum sample to use from training set
-	ulli maxsam = 500;
+	ulli maxsam = 620;
 	
 	// current sample
 	ulli sample = 0;
+	
+	int trgf = 0;
 	
 	while(sample < maxsam)
 	{
@@ -69,7 +71,7 @@ int main()
 		printf("desired output    : ");PRINT_VECT(nn.desired_output,nn.output_width);printf("\n\n");
 	
 		// train for 90% data and then test for rest 10% data
-		if(sample < ( maxsam * 90 ) / 100 ) // do training on 90% data set
+		if(sample < ( maxsam * 95 ) / 100 ) // do training on 90% data set
 		{
 			printf("Training : \n");
 			
@@ -82,9 +84,17 @@ int main()
 		}
 		else
 		{
+			// now since the training is complete we can get rid of excess memory hoarded by callin the below function
+			// call this function once the training is complete
+			if( trgf == 0 )
+			{
+				training_complete(&nn);
+				trgf=1;
+			}
+			
 			printf("Test : \n");
 			// just call get solution to find the output of the program
-			getsolution(&nn);
+			get_solution(&nn);
 		}
 	
 		// print the calculated output
@@ -94,7 +104,7 @@ int main()
 	}
 	
 	// to store the neuralnet on you file system if you dont want your training to be lost
-	store_neuralnet(&nn);
+	store_neuralnet("./mynn.txt",&nn);
 	
 	// delete neuralnet once it is done
 	delete_neuralnet(&nn);
