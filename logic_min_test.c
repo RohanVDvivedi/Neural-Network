@@ -5,6 +5,7 @@
 int main()
 {
 	neuralnet nn;
+	
 	load_neuralnet("mynn.txt",&nn,min);
 	
 	print_neuralnet(&nn);

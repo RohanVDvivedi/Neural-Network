@@ -12,22 +12,15 @@
 // below i have defined the log gradient function that is generally used for logical functions
 double costgrad(double desired,double calculated)
 {
-	if( desired == 1)
+	if( calculated >= 0.99 )
 	{
-		if( calculated <= 0.001 )
-		{
-			calculated = 0.001;
-		}
-		return -desired/calculated;
+		calculated = 0.99;
 	}
-	else if( desired == 0)
+	else if( calculated <= 0.01 )
 	{
-		if( calculated >= 0.999 )
-		{
-			calculated = 0.999;
-		}
-		return (1-desired)/(1-calculated);
+		calculated = 0.01;
 	}
+	return ( (1-desired)/(1-calculated) ) - ( desired/calculated );
 }
 
 
@@ -43,15 +36,17 @@ int main()
 	//		{ Identity , logistic , logistic }  // the activation being used by different layers
 	//		weight_range is this parameter is 4 the weights & biases are initialized randomly from -4 to 4 double values
 	//		learning_rate of neuron
-	init_neuralnet(&nn,3,(ulli []){2,5,1},(activation_type []){IDENTITY,LOGISTIC,LOGISTIC},0.3,0.00001);
+	init_neuralnet(&nn,3,(ulli []){2,4,1},(activation_type []){IDENTITY,LOGISTIC,LOGISTIC},4,1);
 	
 	// maximum sample to use from training set
-	ulli maxsam = 620;
+	ulli maxsam = 1000;
 	
 	// current sample
 	ulli sample = 0;
 	
 	int trgf = 0;
+	
+	double desired_output_local_array[1];
 	
 	while(sample < maxsam)
 	{
@@ -71,7 +66,7 @@ int main()
 		printf("desired output    : ");PRINT_VECT(nn.desired_output,nn.output_width);printf("\n\n");
 	
 		// train for 90% data and then test for rest 10% data
-		if(sample < ( maxsam * 95 ) / 100 ) // do training on 90% data set
+		if(sample < ( maxsam * 90 ) / 100 ) // do training on 90% data set
 		{
 			printf("Training : \n");
 			
@@ -90,6 +85,9 @@ int main()
 			{
 				training_complete(&nn);
 				trgf=1;
+				// once the training is complete the desired_output array is deleted
+				// so we replace it with a local array just to maintain the grouping style of program
+				nn.desired_output = desired_output_local_array;
 			}
 			
 			printf("Test : \n");

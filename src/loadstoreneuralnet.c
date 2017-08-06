@@ -10,7 +10,7 @@ void load_neuralnet(char* filename,neuralnet* nn,init_type it)
 {
 	FILE* fp = fopen(filename,"r");
 	
-	fscanf(fp,"%*s %*s %*s %*s %lld\n\n",&(nn->layer_count) );
+	fscanf(fp,"%*s %*s %*s %*s %lld",&(nn->layer_count) );
 	fscanf(fp,"%*s %*s %*s %lf", &(nn->learning_rate) );
 	
 	ulli* layer_sizes = (ulli*) (malloc(sizeof(ulli)*nn->layer_count));
@@ -21,7 +21,7 @@ void load_neuralnet(char* filename,neuralnet* nn,init_type it)
 	for(ulli i=0;i<nn->layer_count;i++)
 	{
 		fscanf(fp,"%*s %lld %*s %s %*s %*s",&layer_number,act_type_temp);
-		fscanf(fp,"%lld",layer_sizes + layer_number);
+		fscanf(fp,"%lld %*s",layer_sizes + layer_number);
 
 		ulli j = 0;
 		while( strcmp( funct_name[j] , act_type_temp ) != 0 ){j++;}
@@ -65,6 +65,7 @@ void load_neuralnet(char* filename,neuralnet* nn,init_type it)
 		}
 	}
 	
+	free(layer_act_type);
 	free(layer_sizes);
 	fclose(fp);
 }
@@ -76,12 +77,18 @@ void store_neuralnet(char* filename,neuralnet* nn)
 {
 	FILE* fp = fopen(filename,"w");
 	
+	if( fp == NULL )
+	{
+		printf("could not open file \"%s\"\n\n",filename);
+		return ;
+	}
+
 	fprintf(fp,"number of layers : %lld\n\n",nn->layer_count);
 	fprintf(fp,"learning rate : %lf\n\n",nn->learning_rate);
 	
 	for(ulli i=0;i<nn->layer_count;i++)
 	{
-		fprintf(fp,"layer %lld has %s activation for %lld\n",i,funct_name[nn->use_layer[i].act_type],nn->use_layer[i].layer_width);
+		fprintf(fp,"layer %lld has %s activation for %lld neurons\n",i,funct_name[nn->use_layer[i].act_type],nn->use_layer[i].layer_width);
 	}
 	
 	for(ulli i=0;i<nn->layer_count;i++)
@@ -132,7 +139,7 @@ void training_complete(neuralnet* nn)
 			}
 			free(nn->weight_gradient[i]);
 		}
-		free(nn->weight_gradient);}
+		free(nn->weight_gradient);nn->weight_gradient=NULL;}
 	
 		// weight_change
 		if(nn->weight_change!=NULL){
@@ -144,9 +151,9 @@ void training_complete(neuralnet* nn)
 			}
 			free(nn->weight_change[i]);
 		}
-		free(nn->weight_change);}
+		free(nn->weight_change);nn->weight_change=NULL;}
 	
-		if(nn->desired_output!=NULL){free(nn->desired_output);}
+		if(nn->desired_output!=NULL){free(nn->desired_output);nn->desired_output=NULL;}
 
 	for(ulli i=0;i<nn->layer_count;i++)
 	{
